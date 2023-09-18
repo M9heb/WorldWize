@@ -1,18 +1,24 @@
-import { createContext, useContext, useEffect, useReducer } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useReducer,
+} from "react";
 import PropTypes from "prop-types";
 import {
   collection,
   doc,
-  // getDoc,
   getDocs,
   setDoc,
   updateDoc,
+  arrayUnion,
 } from "firebase/firestore";
 import { db } from "../firebase";
 import { AuthContext } from "./AuthContext";
 
 const CitiesContext = createContext();
-const BASE_URL = "http://localhost:8000";
+// const BASE_URL = "http://localhost:8000";
 
 const initialState = {
   cities: [],
@@ -32,13 +38,13 @@ function reducer(state, action) {
       };
     case "city/loaded":
       return { ...state, isLoading: false, currentCity: action.payload };
-    case "city/created":
-      return {
-        ...state,
-        isLoading: false,
-        cities: [...state.cities, action.payload],
-        currentCity: action.payload,
-      };
+    // case "city/created":
+    //   return {
+    //     ...state,
+    //     cities: [...state.cities, action.payload],
+    //     currentCity: action.payload,
+    //     isLoading: false,
+    //   };
     case "city/deleted":
       return {
         ...state,
@@ -63,49 +69,54 @@ const CitiesProvider = ({ children }) => {
     initialState
   );
   const { currentUser } = useContext(AuthContext);
-  useEffect(
-    function () {
-      async function fetchCities() {
-        dispatch({ type: "loading" });
-        try {
-          const citiesCollection = collection(db, "cities");
-          const data = await getDocs(citiesCollection, currentUser.uid);
-          if (data.empty) {
-            // If the collection is empty, initialize it with an empty array
-            await setDoc(doc(db, "cities", currentUser.uid), { cities: [] });
-            dispatch({ type: "cities/loaded", payload: [] });
-          } else {
-            const citiesData = data.docs.map((doc) => doc.data());
-            console.log("Cities from context", citiesData[0].cities);
-            dispatch({ type: "cities/loaded", payload: citiesData[0].cities });
-          }
-        } catch (error) {
-          dispatch({
-            type: "rejected",
-            payload: "There was an error loading data...",
-          });
-        }
-      }
-
-      fetchCities();
-    },
-    [currentUser.uid]
-  );
-
-  async function getCity(id) {
-    if (id === currentCity.id) return;
+  async function fetchCities() {
     dispatch({ type: "loading" });
     try {
-      const res = await fetch(`${BASE_URL}/cities/${id}`);
-      const data = await res.json();
-      dispatch({ type: "city/loaded", payload: data });
-    } catch {
+      const citiesCollection = collection(db, "cities");
+      const data = await getDocs(citiesCollection, currentUser.uid);
+      if (data.empty) {
+        // If the collection is empty, initialize it with an empty array
+        await setDoc(doc(db, "cities", currentUser.uid), { cities: [] });
+        dispatch({ type: "cities/loaded", payload: [] });
+      } else {
+        const citiesData = data.docs.map((doc) => doc.data());
+        // console.log("Cities from context", citiesData[0].cities);
+        dispatch({ type: "cities/loaded", payload: citiesData[0].cities });
+      }
+    } catch (error) {
       dispatch({
         type: "rejected",
         payload: "There was an error loading data...",
       });
     }
   }
+
+  useEffect(
+    function () {
+      fetchCities();
+    },
+    [currentUser]
+  );
+
+  const getCity = useCallback(
+    async function getCity(id) {
+      if (id === currentCity.id) return;
+      dispatch({ type: "loading" });
+      try {
+        const cityData = cities.filter((city) => city.id === id);
+        // const res = await fetch(`${BASE_URL}/cities/${id}`);
+        // const data = await res.json();
+        dispatch({ type: "city/loaded", payload: cityData });
+      } catch {
+        dispatch({
+          type: "rejected",
+          payload: "There was an error loading data...",
+        });
+      }
+    },
+    [currentCity, cities]
+  );
+
   async function createCity(newCity) {
     dispatch({ type: "loading" });
     try {
@@ -116,14 +127,12 @@ const CitiesProvider = ({ children }) => {
       //       "Content-Type": "application/json",
       //     },
       //   });
-      const city = doc(db, "cities", currentUser.uid);
+      const city = doc(db, "cities", currentUser?.uid);
 
-      await updateDoc(city, {
-        newCity,
-      });
+      await updateDoc(city, { cities: arrayUnion(newCity) });
       // const data = await res.json();
-      console.log(city);
-      dispatch({ type: "city/created", payload: city });
+      // dispatch({ type: "city/created", payload: city });
+      fetchCities();
     } catch {
       dispatch({
         type: "rejected",
@@ -134,9 +143,13 @@ const CitiesProvider = ({ children }) => {
   async function deleteCity(id) {
     dispatch({ type: "loading" });
     try {
-      await fetch(`${BASE_URL}/cities/${id}`, {
-        method: "DELETE",
-      });
+      // Create a new array without the city to be deleted
+      const updatedCities = cities.filter((city) => city.id !== id);
+
+      // Update the Firestore document with the modified array
+      const cityRef = doc(db, "cities", currentUser?.uid);
+      await updateDoc(cityRef, { cities: updatedCities });
+
       dispatch({ type: "city/deleted", payload: id });
     } catch {
       dispatch({

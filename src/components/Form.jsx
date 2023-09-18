@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useUrlPosition } from "../hooks/useUrlPosition";
-
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import styles from "./Form.module.css";
@@ -11,6 +10,7 @@ import BackButton from "./BackButton";
 import Message from "./Message";
 import { useCities } from "../Contexts/CitiesContext";
 import { useNavigate } from "react-router-dom";
+import { Timestamp } from "firebase/firestore";
 export function convertToEmoji(countryCode) {
   const codePoints = countryCode
     .toUpperCase()
@@ -31,7 +31,9 @@ function Form() {
   const [emoji, setEmoji] = useState("");
   const [geocodingError, setGeocodingError] = useState("");
   const navigate = useNavigate();
-  console.log(country, isLoadingGeocoding);
+
+  // This is nothing :)
+  if ((country, isLoadingGeocoding));
   useEffect(
     function () {
       if (!lat && !lng) return;
@@ -48,7 +50,7 @@ function Form() {
               "That doesn't seem to be a city. Click somewhere else 😊"
             );
           setCityName(data.city || data.locality || "");
-          setCountry(data.counryName);
+          setCountry(data.countryName);
           setEmoji(convertToEmoji(data.countryCode));
         } catch (err) {
           setGeocodingError(err.message);
@@ -69,8 +71,9 @@ function Form() {
       cityName,
       country,
       emoji,
-      date,
+      date: Timestamp.fromDate(date),
       notes,
+      id: lat + lng,
       position: { lat, lng },
     };
     await createCity(newCity);

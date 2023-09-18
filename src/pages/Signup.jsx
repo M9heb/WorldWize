@@ -1,41 +1,54 @@
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../firebase";
+import { auth, db } from "../firebase";
 import { Link, useNavigate } from "react-router-dom";
 import PageNav from "../components/PageNav";
 import styles from "./Login.module.css";
 import { useState } from "react";
+import { doc, setDoc } from "firebase/firestore";
 
 export default function Signup() {
   // PRE-FILL FOR DEV PURPOSES
-  const [email, setEmail] = useState("jack@example.com");
-  const [password, setPassword] = useState("qwerty");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
   const navigate = useNavigate();
   async function handleSubmit(event) {
     event.preventDefault();
     // const username = event.target[0].value;
     const email = event.target[1].value;
     const password = event.target[2].value;
-    createUserWithEmailAndPassword(auth, email, password)
-      .then(() => {
-        // Signed in
-        alert(
-          "Congrats! You have successfully created an account. Now let's log in"
-        );
-        // const user = userCredential.user;
-        // console.log(user);
-        navigate("/login");
-        // ...
-      })
-      .catch((error) => {
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        console.log(errorCode, errorMessage);
-        alert(
-          "The operation failed! :( please make sure that your inputs are correct and then try again"
-        );
-        // ..
-      });
+    const confirmPassword = event.target[3].value;
+
+    if (password == confirmPassword)
+      createUserWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          // console.log(userCredential.user);
+          setDoc(doc(db, "cities", userCredential.user.uid), { cities: [] });
+        })
+        .then(() => {
+          // Signed in
+
+          alert(
+            "Congrats! You have successfully created an account. Now let's log in"
+          );
+          // const user = userCredential.user;
+          // console.log(user);
+          navigate("/login");
+          // ...
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          console.log(errorCode, errorMessage);
+          alert(
+            "The operation failed! :( please make sure that your inputs are correct and then try again"
+          );
+          // ..
+        });
     // createUserWithEmailAndPassword(auth, email, password);
+    else
+      alert("Invalid email or password, please check them and then try again.");
   }
   return (
     <main className={styles.login}>
@@ -60,7 +73,8 @@ export default function Signup() {
         <div className={styles.row}>
           <label htmlFor="password">Password</label>
           <input
-            type="confirm_password"
+            type="password"
+            placeholder="password"
             required={true}
             id="confirm_password"
             onChange={(e) => setPassword(e.target.value)}
@@ -71,9 +85,11 @@ export default function Signup() {
           <label htmlFor="password">Confirm your password</label>
           <input
             type="password"
+            placeholder="confirm your password"
             required={true}
+            onChange={(e) => setConfirmPassword(e.target.value)}
             id="password"
-            value={password}
+            value={confirmPassword}
           />
         </div>
 

@@ -6,8 +6,8 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase";
 export default function Login() {
   // PRE-FILL FOR DEV PURPOSES
-  const [email, setEmail] = useState("jack@example.com");
-  const [password, setPassword] = useState("qwerty");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const navigate = useNavigate();
   async function handleSubmit(e) {
     e.preventDefault();
@@ -22,6 +22,7 @@ export default function Login() {
         const errorCode = error.code;
         const errorMessage = error.message;
         console.log(errorCode, errorMessage);
+        alert("Invalid email or password, please try again!");
       });
   }
   return (
@@ -32,6 +33,7 @@ export default function Login() {
           <label htmlFor="email">Email address</label>
           <input
             type="email"
+            placeholder="example@gmail.com"
             id="email"
             onChange={(e) => setEmail(e.target.value)}
             value={email}
@@ -42,6 +44,7 @@ export default function Login() {
           <label htmlFor="password">Password</label>
           <input
             type="password"
+            placeholder="password"
             id="password"
             onChange={(e) => setPassword(e.target.value)}
             value={password}

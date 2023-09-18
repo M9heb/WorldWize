@@ -42,6 +42,7 @@ export default function Map() {
     },
     [geolocationPosition]
   );
+  if (!cities) return null;
   return (
     <div className={styles.mapContainer}>
       {!geolocationPosition && (
@@ -64,7 +65,7 @@ export default function Map() {
         {cities.map((city) => (
           <Marker
             key={city.id}
-            position={[city.position.lat, city.position.lng]}
+            position={[city.position?.lat || 0, city.position?.lng || 0]}
           >
             <Popup>
               <span>{city.emoji}</span> <span>{city.cityName}</span>

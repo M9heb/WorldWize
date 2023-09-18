@@ -19,7 +19,7 @@ import PropTypes from "prop-types";
 function ProtectedRoute({ children }) {
   //TODO: Correct This problem, We can not render the Elements inside a route
   const { currentUser } = useContext(AuthContext);
-  console.log(currentUser);
+  // console.log(currentUser);
   if (!currentUser) {
     return <Navigate to="/login" />;
   }
