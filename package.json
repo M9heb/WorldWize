@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://M9heb.github.io/WorldWize",
+  "homepage": "https://M9heb.github.io/WorldWize.git",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
