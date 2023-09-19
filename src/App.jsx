@@ -36,11 +36,11 @@ export default function App() {
       <CitiesProvider>
         <BrowserRouter>
           <Routes>
-            <Route path="product" element={<Product />} />
-            <Route path="pricing" element={<Pricing />} />
-            <Route path="login" element={<Login />} />
-            <Route path="signup" element={<Signup />} />
             <Route index element={<Homepage />} />
+            <Route path="/product" element={<Product />} />
+            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
 
             <Route
               path="app"
